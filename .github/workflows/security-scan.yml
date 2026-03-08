@@ -1,0 +1,41 @@
+name: Security Scan Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit semgrep pylint safety
+
+      - name: Run Bandit
+        run: |
+          bandit agent.py main.py tools.py
+
+      - name: Run Semgrep
+        run: |
+          semgrep --config=auto agent.py main.py tools.py
+
+      - name: Run Pylint
+        run: |
+          pylint agent.py main.py tools.py
+
+      - name: Run Safety
+        run: |
+          safety check
